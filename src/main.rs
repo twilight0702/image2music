@@ -2,13 +2,13 @@ use std::path::PathBuf;
 
 use clap::Parser;
 
-use image2music::{convert_image, ConversionOptions};
+use image2music::{convert_image_with_polarity, ConversionOptions};
 
 #[derive(Debug, Parser)]
 #[command(
     name = "image2music",
     version,
-    about = "Convert a PNG or JPEG image into a WAV melody"
+    about = "将 PNG 或 JPEG 图片转换为 WAV 旋律"
 )]
 struct Args {
     /// 输入的 PNG 或 JPEG 图片。
@@ -36,6 +36,10 @@ struct Args {
     /// 输出 WAV 的采样率。
     #[arg(long, default_value_t = 44_100)]
     sample_rate: u32,
+
+    /// 把暗色像素作为前景，适合白底黑图或黑色轮廓图。
+    #[arg(long, short = 'i')]
+    invert: bool,
 }
 
 fn main() {
@@ -48,7 +52,7 @@ fn main() {
         sample_rate: args.sample_rate,
     };
 
-    match convert_image(&args.input, &args.output, &options) {
+    match convert_image_with_polarity(&args.input, &args.output, &options, args.invert) {
         Ok(event_count) => {
             println!(
                 "Generated {} note event{} in {}",

@@ -14,6 +14,20 @@ pub struct NoteEvent {
     pub amplitude: f32,
 }
 
+/// 带有 HSV 音色信息的音符事件。
+///
+/// 基础 `NoteEvent` 保持 V0.1 的字段不变；颜色模式将额外信息放在这个
+/// 包装结构中，避免破坏已有的灰度 API 和调用者对 `NoteEvent` 的构造方式。
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct ColoredNoteEvent {
+    /// V0.1 的时间、音高、时长和音量信息。
+    pub note: NoteEvent,
+    /// 归一化 Hue，范围为 `0.0..=1.0`。
+    pub hue: f32,
+    /// 归一化 Saturation，范围为 `0.0..=1.0`。
+    pub saturation: f32,
+}
+
 impl NoteEvent {
     /// 返回音符结束时间，便于合成器计算输出缓冲区长度。
     pub fn end(&self) -> f32 {
@@ -24,9 +38,9 @@ impl NoteEvent {
 /// C 大调音阶，以相对于 C 的半音数表示。
 pub const C_MAJOR: [u8; 7] = [0, 2, 4, 5, 7, 9, 11];
 
-/// 默认最低音为中央 C（C4）。
-pub const DEFAULT_BASE_MIDI: u8 = 60;
-/// 默认覆盖两个八度，最高音为 C6。
+/// 默认最低音为 C3，避免默认输出过于尖锐。
+pub const DEFAULT_BASE_MIDI: u8 = 48;
+/// 默认覆盖两个八度，最高音为 C5。
 pub const DEFAULT_OCTAVES: u8 = 2;
 
 /// 将 MIDI 音符编号转换为频率（Hz）。
@@ -100,7 +114,7 @@ mod tests {
     fn rows_stay_in_c_major_over_two_octaves() {
         let bottom = row_to_frequency(31.0, 32);
         let top = row_to_frequency(0.0, 32);
-        assert!((bottom - midi_to_frequency(60.0)).abs() < 0.001);
-        assert!((top - midi_to_frequency(84.0)).abs() < 0.001);
+        assert!((bottom - midi_to_frequency(48.0)).abs() < 0.001);
+        assert!((top - midi_to_frequency(72.0)).abs() < 0.001);
     }
 }
